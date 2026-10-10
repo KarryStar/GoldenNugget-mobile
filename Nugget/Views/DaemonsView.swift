@@ -50,7 +50,7 @@ struct DaemonsView: View {
                         }
                     } header: {
                         NativeCollapsibleHeader(
-                            title: "\(section.rawValue) (\(onCount(in: groups))/\(groups.count))",
+                            title: "\(section.rawValue)（\(onCount(in: groups))/\(groups.count)）",
                             collapsed: collapsed)
                     }
                 }
@@ -58,7 +58,7 @@ struct DaemonsView: View {
             screenTimeSection
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Daemons")
+        .navigationTitle("守护进程")
         // Compact widths only -- on a tablet the split view draws its own sidebar
         // toggle, and a second button beside it is the duplicate-controls mess.
         .goldenSidebarButton()
@@ -84,10 +84,7 @@ struct DaemonsView: View {
         Section {
             Text(identity.describe)
                 .font(.headline)
-            NativeNote("\(onCount(in: DaemonGroups.all.filter { $0.showsSwitch })) "
-                + "of \(DaemonGroups.all.filter { $0.showsSwitch }.count) daemon group(s) on. "
-                + "The groups upstream marks interface-visible but gives no switch are in the "
-                + "Recommended set only.")
+            NativeNote("已启用 \(onCount(in: DaemonGroups.all.filter { $0.showsSwitch }))/\(DaemonGroups.all.filter { $0.showsSwitch }.count) 个守护进程组。上游标记为界面可见但不提供独立开关的组，仅包含在“推荐”集合中。")
         }
     }
 
@@ -112,16 +109,12 @@ struct DaemonsView: View {
         Section {
             masterRow
             recommendedRow
-            NativeNote("Writes "
-                + "/var/db/com.apple.xpc.launchd/disabled.plist. Disabling a "
-                + "daemon stops its service. Only the "
-                + "\(DaemonGroups.allowedKeys.count) labels shown here can "
-                + "ever reach the file.")
+            NativeNote("写入 /var/db/com.apple.xpc.launchd/disabled.plist。禁用某个守护进程会停止其服务。只有此处显示的 \(DaemonGroups.allowedKeys.count) 个标签会被写入该文件。")
         }
     }
 
     private var masterRow: some View {
-        Toggle("Enable Daemon Modifications", isOn: Binding(
+        Toggle("启用守护进程修改", isOn: Binding(
             get: { masterEnabled },
             set: { on in
                 masterEnabled = on
@@ -139,20 +132,17 @@ struct DaemonsView: View {
                 setGroup(group, on: turnOn)
             }
         } label: {
-            Label("Recommended (analytics, tracking & logging)",
+            Label("推荐（分析、跟踪与日志）",
                   systemImage: "wand.and.stars")
         }
     }
 
     private var screenTimeSection: some View {
-        Section("Other") {
+        Section("其他") {
             let spec = TweakCatalog.screenTimeSpec
             TweakRow(spec: spec, selection: $selection,
                      isOn: { isOn(spec) }, setOn: { setOn($0, for: spec) })
-            NativeNote("Writes a 0-byte file over "
-                + "\(DaemonGroups.screenTime.path). Upstream models this as "
-                + "a NullifyFileTweak: it removes a plist rather than "
-                + "writing one.")
+            NativeNote("在 \(DaemonGroups.screenTime.path) 上写入一个 0 字节文件。上游将其建模为 NullifyFileTweak：它移除一个 plist，而不是写入一个。")
         }
     }
 

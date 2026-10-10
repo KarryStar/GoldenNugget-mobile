@@ -66,10 +66,10 @@ struct FirstRunView: View {
 
         var text: String {
             switch self {
-            case .unchecked: return "Not checked yet"
-            case .interfaceMissing: return "No tunnel — \(Tunnel.ifaceIP) is not on any interface"
-            case .peerUnreachable: return "Tunnel interface is up, waiting for \(Tunnel.peerIP):\(Tunnel.servicePort)"
-            case .ready: return "Tunnel is up — \(Tunnel.peerIP):\(Tunnel.servicePort) answered"
+            case .unchecked: return "尚未检查"
+            case .interfaceMissing: return "没有隧道 —— \(Tunnel.ifaceIP) 不在任何网络接口上"
+            case .peerUnreachable: return "隧道接口已就绪，正在等待 \(Tunnel.peerIP):\(Tunnel.servicePort)"
+            case .ready: return "隧道已连通 —— \(Tunnel.peerIP):\(Tunnel.servicePort) 已应答"
             }
         }
 
@@ -84,7 +84,7 @@ struct FirstRunView: View {
             finishSection
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Set Up")
+        .navigationTitle("设置引导")
         .navigationBarTitleDisplayMode(.inline)
         // No `goldenSidebarButton()`: there is no sidebar behind this page in
         // either state. As the gate this is the root; as a Settings page it is
@@ -92,7 +92,7 @@ struct FirstRunView: View {
         .toolbar {
             if let onClose {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Close") { onClose() }
+                    Button("关闭") { onClose() }
                 }
             }
         }
@@ -136,8 +136,8 @@ struct FirstRunView: View {
         .onChange(of: wirelessPair.generatedRecordPath) { _, path in
             adoptGeneratedRecord(at: path)
         }
-        .alert("Setup", isPresented: Binding(get: { errorText != nil }, set: { if !$0 { errorText = nil } })) {
-            Button("OK") {}
+        .alert("设置引导", isPresented: Binding(get: { errorText != nil }, set: { if !$0 { errorText = nil } })) {
+            Button("好") {}
         } message: {
             Text(errorText ?? "?")
         }
@@ -150,9 +150,9 @@ struct FirstRunView: View {
             HStack(spacing: 16) {
                 NativeLogo(size: 64)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Set up GoldenNugget")
+                    Text("设置 GoldenNugget")
                         .font(.title3.bold())
-                    Text("Two things before the app can reach this device.")
+                    Text("在应用连接到这台设备之前，需要先完成两件事。")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -160,9 +160,7 @@ struct FirstRunView: View {
                 Spacer(minLength: 0)
             }
             .padding(.vertical, 4)
-            NativeNote("If the tunnel was connected after the app had already started, "
-                + "close and reopen GoldenNugget once — it decides whether to start its own "
-                + "emulated tunnel at launch, and that decision is made once.")
+            NativeNote("如果隧道是在应用启动之后才连接的，请把 GoldenNugget 完全关闭再打开一次 —— 是否在启动时开启自带的模拟隧道只在启动时决定一次。")
         }
     }
 
@@ -173,7 +171,7 @@ struct FirstRunView: View {
     /// the diagnostics cannot disagree about what a working tunnel looks like —
     /// including when the user has overridden the addressing.
     private var tunnelSection: some View {
-        Section("1 · LocalDevVPN tunnel") {
+        Section("1 · LocalDevVPN 隧道") {
             stepStatus(done: tunnel.isReady, text: tunnel.text)
             Text(Tunnel.requirements)
                 .font(.footnote.monospaced())
@@ -182,80 +180,64 @@ struct FirstRunView: View {
             Button {
                 UIPasteboard.general.string = Tunnel.requirements
             } label: {
-                Label("Copy these values", systemImage: "doc.on.doc")
+                Label("复制这些数值", systemImage: "doc.on.doc")
             }
             Button {
                 Task { await probe() }
             } label: {
-                Label("Check again", systemImage: "arrow.clockwise")
+                Label("再次检查", systemImage: "arrow.clockwise")
             }
-            NativeNote("Install LocalDevVPN (or any equivalent tunnel app) on this iPhone, "
-                + "then switch it on and enter the values above: the tunnel IP is this "
-                + "device's own address in the tunnel, and the peer is the other end. "
-                + "Leave the tunnel on — GoldenNugget needs it for every connection, and "
-                + "this app cannot install a VPN app or a configuration profile itself.")
+            NativeNote("在这台 iPhone 上安装 LocalDevVPN（或任何等效的隧道应用），然后打开它并填入上面的数值：隧道 IP 是这台设备在隧道中的地址，对端则是另一端。请保持隧道开启 —— GoldenNugget 的每一次连接都依赖它，而且本应用无法自行安装 VPN 应用或描述文件。")
             if tunnel == .interfaceMissing {
-                NativeNote("No interface carries \(Tunnel.ifaceIP). The most common cause "
-                    + "is the VPN app being connected to the wrong network, or its tunnel "
-                    + "IP left at its own default.")
+                NativeNote("没有任何接口携带 \(Tunnel.ifaceIP)。最常见的原因是 VPN 应用连到了错误的网络，或其隧道 IP 还停留在默认值。")
             }
             if Tunnel.isCustomised {
-                NativeSafetyNote("Custom tunnel values are in use (see Tunnel settings on "
-                    + "the home page). These must match the ones in LocalDevVPN.")
+                NativeSafetyNote("正在使用自定义隧道值（见主页的“隧道设置”）。这些值必须与 LocalDevVPN 中的一致。")
             }
         }
     }
 
     /// Step 2: a pairing record, from the PC or from the phone itself.
     private var pairingSection: some View {
-        Section("2 · Pairing") {
+        Section("2 · 配对") {
             stepStatus(done: pairingReady,
                        text: pairingReady
-                        ? "A pairing record is in place"
-                        : "No pairing record yet")
+                        ? "配对记录已就位"
+                        : "还没有配对记录")
             if wirelessPair.isRunning {
                 wirelessPairProgress
             } else {
                 Button {
                     showPairingImporter = true
                 } label: {
-                    Label("Import pairing file", systemImage: "doc.badge.plus")
+                    Label("导入配对文件", systemImage: "doc.badge.plus")
                 }
                 Button {
                     wirelessPair.start()
                 } label: {
-                    Label("Pair without a computer", systemImage: "wifi")
+                    Label("免电脑配对", systemImage: "wifi")
                 }
             }
-            NativeNote("To pair with a computer: connect this iPhone over USB, tap Trust when "
-                + "it asks, and run the computer's pairing tool against it — for example "
-                + "idevicepair from libimobiledevice, or Sideloadly. The tool writes a "
-                + ".mobiledevicepairing file; send that file to this phone (AirDrop, or save it "
-                + "in iCloud Drive) and import it above.")
-            NativeNote("Or pair without a computer: iOS 27 lets the phone pair with itself, "
-                + "which is what the second button does. That record is this app's own — a "
-                + "computer still needs its own record, imported the first way.")
+            NativeNote("与电脑配对：用 USB 连接这台 iPhone，在弹出询问时点按“信任”，然后对它运行电脑端的配对工具 —— 例如 libimobiledevice 的 idevicepair，或 Sideloadly。工具会生成一个 .mobiledevicepairing 文件；把这个文件发送到这台手机（隔空投送，或存到 iCloud 云盘），再在上方导入。")
+            NativeNote("或者免电脑配对：iOS 27 允许手机与自身配对，第二个按钮做的就是这件事。这样得到的记录只属于本应用 —— 电脑仍然需要它自己的记录，要按第一种方式导入。")
         }
     }
 
     private var finishSection: some View {
         Section {
             NativeNote(canFinish
-                ? "Both are ready. Finishing connects to the device and opens the home page; "
-                    + "the record here is the one it reads."
-                : "The tunnel and the pairing record are both required. Finish stays greyed "
-                    + "out until both are ready — a home page that cannot connect is the "
-                    + "state this guide exists to prevent.")
-            NativePrimaryButton(title: "Finish setup", systemImage: "checkmark", disabled: !canFinish) {
-                firstRun.complete(reason: "tunnel and pairing record both ready")
+                ? "两项都已就绪。完成后会连接设备并打开主页；这里写入的记录就是它读取的那份。"
+                : "隧道与配对记录缺一不可。在两者都就绪之前“完成”按钮保持置灰 —— 打开一个连不上设备的主页，正是这份引导要避免的情形。")
+            NativePrimaryButton(title: "完成设置", systemImage: "checkmark", disabled: !canFinish) {
+                firstRun.complete(reason: "隧道与配对记录均已就绪")
                 onClose?()
             }
-            Button("Skip setup for now") {
-                firstRun.complete(reason: "skipped by the user")
+            Button("暂时跳过设置") {
+                firstRun.complete(reason: "用户选择跳过")
                 onClose?()
             }
             .foregroundStyle(.secondary)
-            NativeNote("Skipping is not a dead end: this guide is in Settings afterwards.")
+            NativeNote("跳过并不是死路：之后随时可以在“设置”里重新打开这份引导。")
         }
     }
 
@@ -286,24 +268,23 @@ struct FirstRunView: View {
             HStack(spacing: 8) {
                 ProgressView()
                 Text(wirelessPair.serviceName
-                        .map { "Advertising “\($0)” — waiting for this iPhone to connect…" }
-                     ?? "Starting the pairing service…")
+                        .map { "正在广播“\($0)” —— 等待这台 iPhone 连接…" }
+                     ?? "正在启动配对服务…")
                     .font(.subheadline)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let pin = wirelessPair.pin {
-                Text("PIN: \(pin)")
+                Text("PIN：\(pin)")
                     .font(.title3.monospaced().weight(.semibold))
                     .textSelection(.enabled)
-                NativeNote("Confirm this PIN on the device to finish pairing.")
+                NativeNote("在设备上确认这个 PIN 以完成配对。")
             } else {
-                NativeNote("Leave this screen open. iOS 27 connects this iPhone to the "
-                    + "advertised pairing service itself — no computer is involved.")
+                NativeNote("请保持本屏幕开启。iOS 27 会让这台 iPhone 直接连接被广播的配对服务 —— 全程不需要电脑。")
             }
             Button(role: .destructive) {
                 wirelessPair.cancel()
             } label: {
-                Label("Cancel pairing", systemImage: "xmark.circle")
+                Label("取消配对", systemImage: "xmark.circle")
             }
         }
     }
@@ -324,7 +305,7 @@ struct FirstRunView: View {
         }.value
         let next: TunnelStep = interfaceUp ? (peerReachable ? .ready : .peerUnreachable) : .interfaceMissing
         if next != tunnel {
-            GoldenNuggetEngine.shared.log("setup guide: tunnel — \(next.text)")
+            GoldenNuggetEngine.shared.log("设置引导：隧道 —— \(next.text)")
         }
         tunnel = next
     }
@@ -340,12 +321,10 @@ struct FirstRunView: View {
             let record = try PairingRecord.accept(contentsOf: url)
             PairingRecord.persist(record)
             pairingReady = true
-            GoldenNuggetEngine.shared.log("setup guide: pairing file imported "
-                + "(\(PairingRecord.sourceLabel(record)), \(record.count) bytes)")
+            GoldenNuggetEngine.shared.log("设置引导：配对文件已导入（\(PairingRecord.sourceLabel(record))，\(record.count) 字节）")
         } catch {
             errorText = error.localizedDescription
-            GoldenNuggetEngine.shared.log("setup guide: pairing file import failed "
-                + "(\(url.lastPathComponent)): \(error.localizedDescription)")
+            GoldenNuggetEngine.shared.log("设置引导：配对文件导入失败（\(url.lastPathComponent)）：\(error.localizedDescription)")
         }
     }
 
@@ -365,12 +344,10 @@ struct FirstRunView: View {
                 : try PairingRecord.accept(contentsOf: URL(fileURLWithPath: path))
             if path != AppPaths.pairingFile.path { PairingRecord.persist(record) }
             pairingReady = true
-            GoldenNuggetEngine.shared.log("setup guide: wireless pairing record adopted "
-                + "(\(PairingRecord.sourceLabel(record)))")
+            GoldenNuggetEngine.shared.log("设置引导：已采用无线配对生成的记录（\(PairingRecord.sourceLabel(record))）")
         } catch {
             errorText = error.localizedDescription
-            GoldenNuggetEngine.shared.log("setup guide: wireless pairing record rejected — "
-                + "\(error.localizedDescription)")
+            GoldenNuggetEngine.shared.log("设置引导：无线配对生成的记录被拒绝 —— \(error.localizedDescription)")
         }
     }
 }

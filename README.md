@@ -3,6 +3,8 @@
 # GoldenNugget (Mobile)
 Unlock your device's full potential, with iOS 27 support!
 
+> 🇨🇳 **简体中文说明见 [README.zh-CN.md](README.zh-CN.md)** — this fork ships with a full Simplified Chinese localization of the app UI.
+
 Customize your device with animated wallpapers, disable pesky daemons, and more!
 
 Make sure you have installed the [requirements](#requirements) if you are on Windows or Linux.

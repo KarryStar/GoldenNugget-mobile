@@ -80,8 +80,8 @@ enum Airlift {
     /// The reason to refuse, for the UI.
     static func unsupportedReason(deviceVersion: String) -> String {
         isSupported(deviceVersion: deviceVersion) ? ""
-            : "AirLift needs iOS \(minimumVersion) or newer — this device reports "
-            + (deviceVersion.isEmpty ? "no version" : "iOS \(deviceVersion)") + "."
+            : "AirLift 需要 iOS \(minimumVersion) 或更新版本 —— 此设备报告为 "
+            + (deviceVersion.isEmpty ? "未知版本" : "iOS \(deviceVersion)") + "."
     }
 
     /// Refuse unless the device is new enough, re-reading it first.
@@ -223,8 +223,7 @@ enum Airlift {
     static func respring() async throws {
         let attached = await MainActor.run { NeoSpring.trigger() }
         guard attached else {
-            throw GoldenNuggetError("There is no window to respring from. Leave the app in the "
-                + "foreground and run it again.")
+            throw GoldenNuggetError("没有可以用来注销（Respring）的窗口。请把应用留在前台，然后重试。")
         }
         // Give WebKit the moment it needs to load the payload. Returning
         // earlier would let the run report a respring that had not started yet.

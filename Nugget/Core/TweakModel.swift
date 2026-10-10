@@ -206,7 +206,7 @@ extension TweakSpec {
     /// The units line under a `.number` editor.
     var numberHint: String {
         let integral = step == step.rounded() && (minValue == minValue.rounded())
-        return "\(minValue)–\(maxValue), step \(step)" + (integral ? "" : " (decimal)")
+        return "\(minValue)–\(maxValue)，步长 \(step)" + (integral ? "" : "（小数）")
     }
 }
 

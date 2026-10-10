@@ -87,9 +87,9 @@ enum PosterBoard {
 /// select is not a feature, and reproducing it would mean offering a mode the
 /// reference's own users have never run.
 enum PosterBoardResetMode: String, CaseIterable, Identifiable, Hashable {
-    case collections = "Collections"
-    case suggestedPhotos = "Suggested Photos"
-    case galleryCache = "Gallery Cache"
+    case collections = "合集"
+    case suggestedPhotos = "建议照片"
+    case galleryCache = "图库缓存"
 
     var id: String { rawValue }
 
@@ -97,11 +97,11 @@ enum PosterBoardResetMode: String, CaseIterable, Identifiable, Hashable {
     var detail: String {
         switch self {
         case .collections:
-            return "Clears the Collections and MercuryPoster descriptor folders."
+            return "清除合集与 MercuryPoster 描述器文件夹。"
         case .suggestedPhotos:
-            return "Clears the Photos poster provider's descriptor folder."
+            return "清除照片海报 provider 的描述器文件夹。"
         case .galleryCache:
-            return "Clears the gallery cache."
+            return "清除图库缓存。"
         }
     }
 
@@ -188,14 +188,14 @@ struct PosterBoardSelection {
 
     /// The reference's own summary of what an apply will carry, for the log.
     var describe: String {
-        if fullReset { return "full reset" }
+        if fullReset { return "完全重置" }
         if !resetModes.isEmpty {
-            return "reset: " + resetModes.map(\.rawValue).sorted().joined(separator: ", ")
+            return "重置：" + resetModes.map(\.rawValue).sorted().joined(separator: ", ")
         }
         var parts: [String] = []
-        if !tendies.isEmpty { parts.append("\(tendies.count) pack(s)") }
-        if let video { parts.append("video \(video.lastPathComponent)") }
-        return parts.isEmpty ? "nothing" : parts.joined(separator: ", ")
+        if !tendies.isEmpty { parts.append("\(tendies.count) 个壁纸包") }
+        if let video { parts.append("视频 \(video.lastPathComponent)") }
+        return parts.isEmpty ? "无" : parts.joined(separator: ", ")
     }
 
     /// Re-read the inputs that live on disk: the imported packs and the two picked
@@ -317,7 +317,7 @@ extension PosterBoard {
         if !selection.resetModes.isEmpty {
             for mode in selection.resetModes.sorted(by: { $0.rawValue < $1.rawValue }) {
                 for path in mode.paths(structureVersion: version) {
-                    log("  → reset \(mode.rawValue): \(storeRoot)\(path)")
+                    log("  → 重置 \(mode.rawValue)：\(storeRoot)\(path)")
                     payloads.append(TweakPayload(domain: domain,
                                                  relativePath: storeRoot + path,
                                                  contents: Data()))
@@ -330,7 +330,7 @@ extension PosterBoard {
         //    returns here too (`len(tendies) == 0 and len(templates) == 0 and
         //    videoFile == None`).
         guard !selection.tendies.isEmpty || selection.video != nil else {
-            log("PosterBoard: nothing selected.")
+            log("PosterBoard：未选择任何内容。")
             return []
         }
 
@@ -350,7 +350,7 @@ extension PosterBoard {
             // Deterministic, not `uuid4()`: see this type's divergence note.
             let destination = workingDirectory.appendingPathComponent(
                 String(format: "%03d-%@", index, sanitised(tendie.name)), conformingTo: .data)
-            log("  → unpacking \(tendie.name) (\(tendie.summary))")
+            log("  → 解包 \(tendie.name)（\(tendie.summary)）")
             try tendie.extract(to: destination)
             // Each pack is converted in its own folder so the per-pack
             // "convert / install as is" answer is honoured
@@ -369,10 +369,7 @@ extension PosterBoard {
         // 6. The database.  A wallpaper that is not in it does not exist.
         guard let database else {
             throw GoldenNuggetError(
-                "PosterBoard has no database to add these wallpapers to. Fetch the device's "
-                + "PosterBoard database first (the page's database card) — the store's "
-                + "database is what makes a wallpaper appear in the picker, and it cannot be "
-                + "synthesised: it carries the device's own row set.")
+                "PosterBoard 没有可加入这些墙纸的数据库。请先取回设备的 PosterBoard 数据库（页面上的数据库卡片）—— 正是存储库数据库让墙纸出现在选择器中，而它无法凭空合成：它承载着设备自己的行集。")
         }
         let staged = try PosterBoardStore.stitch(database: database,
                                                  items: builder.configs,
@@ -397,8 +394,7 @@ extension PosterBoard {
                                          contents: try refreshPreferences(deviceVersion: deviceVersion)))
         }
 
-        log("PosterBoard: \(payloads.count) file(s) — \(builder.configs.count) wallpaper(s) "
-            + "staged into the store database (\(builder.payloads.count) from disk)")
+        log("PosterBoard：\(payloads.count) 个文件 —— \(builder.configs.count) 张墙纸已写入存储库数据库（\(builder.payloads.count) 个来自磁盘）")
         return payloads
     }
 
@@ -459,9 +455,7 @@ extension PosterBoard {
         // not a stricter one.  Guessing "not 26.4" would silently write a
         // smaller plist than a 26.4+ device needs.
         guard let atLeast264 = compareVersion(deviceVersion, "26.4") else {
-            throw GoldenNuggetError("PosterBoard needs the device's iOS version to decide which "
-                + "reset preferences to write (26.4 added two migration lists), and "
-                + "\"\(deviceVersion)\" is not a version. Read the device identity and try again.")
+            throw GoldenNuggetError("PosterBoard 需要设备的 iOS 版本来决定写入哪些重置偏好（26.4 新增了两个迁移列表），而“\(deviceVersion)”不是一个版本。请先读取设备身份再试。")
         }
         var plist: [String: Any] = [
             "PBF_LOCALE_DID_CHANGE": false,
@@ -719,7 +713,7 @@ private struct PosterBoardBuilder {
                         // The reference catches `IOError` and moves on. Kept,
                         // but said out loud: a silently missing descriptor file
                         // is a wallpaper that half-exists.
-                        log("  ⚠️ skipping \(destination): \(error)")
+                        log("  ⚠️ 跳过 \(destination)：\(error)")
                     }
                 } else {
                     // Every descriptor version directory gets the three
@@ -879,7 +873,7 @@ extension PosterBoard {
         do {
             try fm.copyItem(at: source, to: destination)
         } catch {
-            throw GoldenNuggetError("Could not copy \(source.lastPathComponent) into the app: "
+            throw GoldenNuggetError("无法将 \(source.lastPathComponent) 复制进本应用："
                 + error.localizedDescription)
         }
         return destination
@@ -905,7 +899,7 @@ enum PosterBoardPlist {
         let data = try Data(contentsOf: url)
         let object = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
         guard let plist = object as? [String: Any] else {
-            throw GoldenNuggetError("\(url.lastPathComponent) is a plist but not a dictionary.")
+            throw GoldenNuggetError("\(url.lastPathComponent) 是 plist 但不是字典。")
         }
         return plist
     }
@@ -956,7 +950,7 @@ enum PosterBoardPlist {
     static func alignedForFamily(_ data: Data) throws -> Data {
         let object = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
         guard var plist = object as? [String: Any] else {
-            throw GoldenNuggetError("Wallpaper.plist is not a dictionary.")
+            throw GoldenNuggetError("Wallpaper.plist 不是字典。")
         }
         let newIdentifier = plist["identifier"]
         if let assets = plist["assets"] as? [String: Any],
